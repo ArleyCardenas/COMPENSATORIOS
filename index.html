@@ -69,8 +69,20 @@ button {
 const URL = "https://script.google.com/macros/s/AKfycbz8cS9FqaW4RJPzMqh6aNSZRWh6df-1cjVNmFivdWCh0z7iVYdQLiddGL1dX6Yt4p0B/exec";
 
 function enviar() {
-  let funcionario = document.getElementById("funcionario").value;
-  let dia = document.getElementById("dia").value;
+
+  let funcionario = document.getElementById("funcionario").value.trim();
+  let dia = document.getElementById("dia").value.trim();
+  let mensaje = document.getElementById("mensaje");
+  let boton = document.querySelector("button");
+
+  // Validación
+  if (funcionario === "" || dia === "") {
+    mensaje.innerHTML = "⚠️ Debe completar todos los campos";
+    return;
+  }
+
+  // Bloquear botón (evita doble envío)
+  boton.disabled = true;
 
   fetch(URL, {
     method: "POST",
@@ -83,13 +95,24 @@ function enviar() {
   .then(data => {
 
     if (data.status === "ok") {
+
       document.getElementById("funcionario").value = "";
-document.getElementById("dia").value = "";
-      document.getElementById("mensaje").innerHTML = "✅ Registro exitoso";
+      document.getElementById("dia").value = "";
+
+      mensaje.innerHTML = "✅ Registro exitoso";
+
     } else {
-      document.getElementById("mensaje").innerHTML = "❌ Ya está registrado en ese día";
+
+      mensaje.innerHTML = "⚠️ Usted ya se encuentra registrado en este día";
+
     }
 
+  })
+  .catch(error => {
+    mensaje.innerHTML = "❌ Error de conexión";
+  })
+  .finally(() => {
+    boton.disabled = false;
   });
 }
 
