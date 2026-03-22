@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro Funcionarios</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  text-align: center;
+  padding: 30px;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  margin: auto;
+}
+
+select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+}
+
+#mensaje {
+  margin-top: 15px;
+  font-weight: bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Registro de Funcionarios</h2>
+
+<select id="funcionario">
+  <option value="">Seleccione funcionario</option>
+  <option>DG. ARAUJO R</option>
+  <option>OTRO FUNCIONARIO</option>
+</select>
+
+<select id="dia">
+  <option value="">Seleccione día</option>
+  <option>A 2 JUEVES DIA</option>
+  <option>B 3 VIERNES NOCHE</option>
+</select>
+
+<button onclick="enviar()">Registrar</button>
+
+<div id="mensaje"></div>
+
+</div>
+
+<script>
+
+const URL = "PEGA_AQUI_TU_URL";
+
+function enviar() {
+  let funcionario = document.getElementById("funcionario").value;
+  let dia = document.getElementById("dia").value;
+
+  fetch(URL, {
+    method: "POST",
+    body: JSON.stringify({
+      funcionario: funcionario,
+      dia: dia
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    if (data.status === "ok") {
+      document.getElementById("mensaje").innerHTML = "✅ Registro exitoso";
+    } else {
+      document.getElementById("mensaje").innerHTML = "❌ Ya está registrado en ese día";
+    }
+
+  });
+}
+
+</script>
+
+</body>
+</html>
