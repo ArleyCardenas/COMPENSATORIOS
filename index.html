@@ -83,6 +83,8 @@ function enviar() {
   .then(data => {
 
     if (data.status === "ok") {
+      document.getElementById("funcionario").value = "";
+document.getElementById("dia").value = "";
       document.getElementById("mensaje").innerHTML = "✅ Registro exitoso";
     } else {
       document.getElementById("mensaje").innerHTML = "❌ Ya está registrado en ese día";
