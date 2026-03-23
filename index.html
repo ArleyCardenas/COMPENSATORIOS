@@ -1,122 +1,194 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Registro Funcionarios</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro Funcionarios</title>
 
-<style>
-body {
-  font-family: Arial;
-  background: #f4f4f4;
-  text-align: center;
-  padding: 30px;
-}
+    <style>
+      body {
+        font-family: Arial;
+        background: #f4f4f4;
+        text-align: center;
+        padding: 30px;
+      }
 
-.container {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-  margin: auto;
-}
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        margin: auto;
+      }
 
-select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+      }
 
-button {
-  background: #007bff;
-  color: white;
-  border: none;
-}
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+      }
 
-#mensaje {
-  margin-top: 15px;
-  font-weight: bold;
-}
-</style>
+      #mensaje {
+        margin-top: 15px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
 
-</head>
+  <body>
+    <div class="container">
+      <h2>Registro de Funcionarios</h2>
 
-<body>
+      <select id="funcionario">
+        <option value="">Cargando...</option>
+      </select>
 
-<div class="container">
+      <select id="dia">
+        <option value="">Seleccione día</option>
+        <option>A 2 JUEVES DIA</option>
+        <option>B 3 VIERNES NOCHE</option>
+      </select>
 
-<h2>Registro de Funcionarios</h2>
+      <button onclick="enviar()">Registrar</button>
 
-<select id="funcionario">
-  <option value="">Seleccione funcionario</option>
-  <option>DG. ARAUJO R</option>
-  <option>OTRO FUNCIONARIO</option>
-</select>
+      <div id="mensaje"></div>
+    </div>
 
-<select id="dia">
-  <option value="">Seleccione día</option>
-  <option>A 2 JUEVES DIA</option>
-  <option>B 3 VIERNES NOCHE</option>
-</select>
+    <br />
+    <h3 style="text-align: center">📋 Inscritos</h3>
+    <table border="1" style="margin: auto; width: 80%; background: white">
+      <thead>
+        <tr>
+          <th>Funcionario</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody id="tabla"></tbody>
+    </table>
 
-<button onclick="enviar()">Registrar</button>
+    <script>
+      const URL =
+        "https://script.google.com/macros/s/AKfycbz8cS9FqaW4RJPzMqh6aNSZRWh6df-1cjVNmFivdWCh0z7iVYdQLiddGL1dX6Yt4p0B/exec";
 
-<div id="mensaje"></div>
+      function enviar() {
+        const funcionario = document.getElementById("funcionario").value.trim();
+        const dia = document.getElementById("dia").value.trim();
+        const mensaje = document.getElementById("mensaje");
+        const boton = document.querySelector("button");
 
-</div>
+        // Validación
+        if (funcionario === "" || dia === "") {
+          mensaje.innerHTML = "⚠️ Debe completar todos los campos";
+          return;
+        }
 
-<script>
+        boton.disabled = true;
 
-const URL = "https://script.google.com/macros/s/AKfycbz8cS9FqaW4RJPzMqh6aNSZRWh6df-1cjVNmFivdWCh0z7iVYdQLiddGL1dX6Yt4p0B/exec";
+        fetch(URL, {
+          method: "POST",
+          body: JSON.stringify({
+            funcionario: funcionario,
+            dia: dia,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status === "ok") {
+              document.getElementById("funcionario").value = "";
+              document.getElementById("dia").value = "";
 
-function enviar() {
+              mensaje.innerHTML = "✅ Registro exitoso";
 
-  let funcionario = document.getElementById("funcionario").value.trim();
-  let dia = document.getElementById("dia").value.trim();
-  let mensaje = document.getElementById("mensaje");
-  let boton = document.querySelector("button");
+              // 🔥 CARGAR TABLA DESPUÉS DEL REGISTRO
+              cargarTabla(dia);
+            } else {
+              mensaje.innerHTML =
+                "⚠️ Usted ya se encuentra registrado en este día";
 
-  // Validación
-  if (funcionario === "" || dia === "") {
-    mensaje.innerHTML = "⚠️ Debe completar todos los campos";
-    return;
-  }
+              // 🔥 TAMBIÉN MOSTRAR TABLA
+              cargarTabla(dia);
+            }
+          })
+          .catch((error) => {
+            mensaje.innerHTML = "❌ Error de conexión";
+          })
+          .finally(() => {
+            boton.disabled = false;
+          });
+      }
 
-  // Bloquear botón (evita doble envío)
-  boton.disabled = true;
+      // 🔥 FUNCIÓN PARA CARGAR LA TABLA
+      function cargarTabla(dia) {
+        document.getElementById("tabla").innerHTML =
+          "<tr><td colspan='2'>⏳ Cargando datos...</td></tr>";
 
-  fetch(URL, {
-    method: "POST",
-    body: JSON.stringify({
-      funcionario: funcionario,
-      dia: dia
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
+        fetch(`${URL}?dia=${encodeURIComponent(dia)}`)
+          .then((res) => res.text())
+          .then((text) => {
+            try {
+              const data = JSON.parse(text);
+              const tabla = document.getElementById("tabla");
 
-    if (data.status === "ok") {
+              if (data.length === 0) {
+                tabla.innerHTML = "<tr><td colspan='2'>Sin registros</td></tr>";
+                return;
+              }
 
-      document.getElementById("funcionario").value = "";
-      document.getElementById("dia").value = "";
+              let filasHTML = "";
+              data.forEach((item) => {
+                const fecha = new Date(item.fecha).toLocaleString();
+                filasHTML += `
+          <tr>
+            <td>${item.funcionario}</td>
+            <td>${fecha}</td>
+          </tr>
+        `;
+              });
+              tabla.innerHTML = filasHTML;
+            } catch (e) {
+              console.error(
+                "El servidor no devolvió JSON válido. Respuesta recibida:",
+                text,
+              );
+              document.getElementById("tabla").innerHTML =
+                "<tr><td colspan='2'>❌ Error de formato en los datos. Revisa la consola.</td></tr>";
+            }
+          })
+          .catch((error) => {
+            console.error("Error en la solicitud Fetch:", error);
+            document.getElementById("tabla").innerHTML =
+              "<tr><td colspan='2'>❌ Error de conexión al cargar datos</td></tr>";
+          });
+      }
 
-      mensaje.innerHTML = "✅ Registro exitoso";
-
-    } else {
-
-      mensaje.innerHTML = "⚠️ Usted ya se encuentra registrado en este día";
-
-    }
-
-  })
-  .catch(error => {
-    mensaje.innerHTML = "❌ Error de conexión";
-  })
-  .finally(() => {
-    boton.disabled = false;
-  });
-}
-
-</script>
-
-</body>
+      // 🔥 FUNCIÓN PARA CARGAR FUNCIONARIOS AL INICIAR
+      function cargarFuncionarios() {
+        fetch(URL)
+          .then((res) => res.json())
+          .then((data) => {
+            let select = document.getElementById("funcionario");
+            select.innerHTML =
+              '<option value="">Seleccione funcionario</option>';
+            data.forEach((nombre) => {
+              let option = document.createElement("option");
+              option.value = nombre;
+              option.textContent = nombre;
+              select.appendChild(option);
+            });
+          })
+          .catch(() => {
+            document.getElementById("funcionario").innerHTML =
+              "<option>Error al cargar</option>";
+          });
+      }
+      window.onload = cargarFuncionarios;
+    </script>
+  </body>
 </html>
+
